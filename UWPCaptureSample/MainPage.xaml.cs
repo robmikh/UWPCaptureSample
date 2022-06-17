@@ -52,7 +52,7 @@ namespace UWPCaptureSample
                 DisplaysComboBox.IsEnabled = false;
                 RefreshButton.IsEnabled = false;
             }
-            if (!_isBorderlessPresent)
+            if (_isBorderlessPresent)
             {
                 await RequestBorderAccessAsync();
             }
