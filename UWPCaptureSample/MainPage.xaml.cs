@@ -44,8 +44,7 @@ namespace UWPCaptureSample
             UpdateFeaturePresence();
             if (_isProgrammaticPresent)
             {
-                await RequestAccessAsync();
-                RefreshProgrammaticComboBoxes();
+                await RefreshProgrammaticComboBoxesAsync();
             }
             else
             {
@@ -54,6 +53,10 @@ namespace UWPCaptureSample
                 RefreshButton.IsEnabled = false;
             }
             if (!_isBorderlessPresent)
+            {
+                await RequestBorderAccessAsync();
+            }
+            else
             {
                 BorderCheckBox.IsEnabled = false;
             }
@@ -95,48 +98,50 @@ namespace UWPCaptureSample
             ElementCompositionPreview.SetElementChildVisual(VisualGrid, _root);
         }
 
-        private async Task RequestAccessAsync()
+        private async Task RequestBorderAccessAsync()
         {
-            var accessResult = await GraphicsCaptureAccess.RequestAccessAsync(GraphicsCaptureAccessKind.Programmatic);
-            if (accessResult != AppCapabilityAccessStatus.Allowed)
-            {
-                var dialog = new MessageDialog($"Programmatic access denied! Result: {accessResult.ToString()}");
-                await dialog.ShowAsync();
-            }
-
-            accessResult = await GraphicsCaptureAccess.RequestAccessAsync(GraphicsCaptureAccessKind.Borderless);
-            if (accessResult != AppCapabilityAccessStatus.Allowed)
-            {
-                var dialog = new MessageDialog($"Borderless access denied! Result: {accessResult.ToString()}");
-                await dialog.ShowAsync();
-            }
+            // We need to request access, but being denied is ok. It just means the
+            // system won't honor our border preferences unless the user grants us access.
+            var ignoredResult = await GraphicsCaptureAccess.RequestAccessAsync(GraphicsCaptureAccessKind.Borderless);
         }
 
-        private void RefreshProgrammaticComboBoxes()
+        private async Task RefreshProgrammaticComboBoxesAsync()
         {
-            var windowList = new List<GraphicsCaptureItem>();
-            var windows = WindowServices.FindAllTopLevelWindowIds();
-            foreach (var window in windows)
+            var accessResult = await GraphicsCaptureAccess.RequestAccessAsync(GraphicsCaptureAccessKind.Programmatic);
+            if (accessResult == AppCapabilityAccessStatus.Allowed)
             {
-                var item = GraphicsCaptureItem.TryCreateFromWindowId(window);
-                if (item != null)
-                {
-                    windowList.Add(item);
-                }
-            }
-            WindowsComboBox.ItemsSource = windowList;
+                WindowsComboBox.IsEnabled = true;
+                DisplaysComboBox.IsEnabled = true;
 
-            var displayList = new List<GraphicsCaptureItem>();
-            var displays = DisplayServices.FindAll();
-            foreach (var display in displays)
-            {
-                var item = GraphicsCaptureItem.TryCreateFromDisplayId(display);
-                if (item != null)
+                var windowList = new List<GraphicsCaptureItem>();
+                var windows = WindowServices.FindAllTopLevelWindowIds();
+                foreach (var window in windows)
                 {
-                    displayList.Add(item);
+                    var item = GraphicsCaptureItem.TryCreateFromWindowId(window);
+                    if (item != null)
+                    {
+                        windowList.Add(item);
+                    }
                 }
+                WindowsComboBox.ItemsSource = windowList;
+
+                var displayList = new List<GraphicsCaptureItem>();
+                var displays = DisplayServices.FindAll();
+                foreach (var display in displays)
+                {
+                    var item = GraphicsCaptureItem.TryCreateFromDisplayId(display);
+                    if (item != null)
+                    {
+                        displayList.Add(item);
+                    }
+                }
+                DisplaysComboBox.ItemsSource = displayList;
             }
-            DisplaysComboBox.ItemsSource = displayList;
+            else
+            {
+                WindowsComboBox.IsEnabled = false;
+                DisplaysComboBox.IsEnabled = false;
+            }
         }
 
         private void StartCapture(GraphicsCaptureItem item)
@@ -184,9 +189,9 @@ namespace UWPCaptureSample
             StartCapture(item);
         }
 
-        private void RefreshButton_Click(object sender, RoutedEventArgs e)
+        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
         {
-            RefreshProgrammaticComboBoxes();
+            await RefreshProgrammaticComboBoxesAsync();
         }
 
         private void BorderCheckBox_Checked(object sender, RoutedEventArgs e)
