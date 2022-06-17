@@ -113,28 +113,39 @@ namespace UWPCaptureSample
                 WindowsComboBox.IsEnabled = true;
                 DisplaysComboBox.IsEnabled = true;
 
-                var windowList = new List<GraphicsCaptureItem>();
-                var windows = WindowServices.FindAllTopLevelWindowIds();
-                foreach (var window in windows)
-                {
-                    var item = GraphicsCaptureItem.TryCreateFromWindowId(window);
-                    if (item != null)
-                    {
-                        windowList.Add(item);
-                    }
-                }
-                WindowsComboBox.ItemsSource = windowList;
+                ProgrammaticLoadingGrid.Visibility = Visibility.Visible;
+                ProgrammaticLoadingRing.IsActive = true;
 
+                var windowList = new List<GraphicsCaptureItem>();
                 var displayList = new List<GraphicsCaptureItem>();
-                var displays = DisplayServices.FindAll();
-                foreach (var display in displays)
+
+                await Task.Run(() =>
                 {
-                    var item = GraphicsCaptureItem.TryCreateFromDisplayId(display);
-                    if (item != null)
+                    var windows = WindowServices.FindAllTopLevelWindowIds();
+                    foreach (var window in windows)
                     {
-                        displayList.Add(item);
+                        var item = GraphicsCaptureItem.TryCreateFromWindowId(window);
+                        if (item != null)
+                        {
+                            windowList.Add(item);
+                        }
                     }
-                }
+
+                    var displays = DisplayServices.FindAll();
+                    foreach (var display in displays)
+                    {
+                        var item = GraphicsCaptureItem.TryCreateFromDisplayId(display);
+                        if (item != null)
+                        {
+                            displayList.Add(item);
+                        }
+                    }
+                });
+
+                ProgrammaticLoadingGrid.Visibility = Visibility.Collapsed;
+                ProgrammaticLoadingRing.IsActive = false;
+
+                WindowsComboBox.ItemsSource = windowList;
                 DisplaysComboBox.ItemsSource = displayList;
             }
             else
@@ -146,9 +157,10 @@ namespace UWPCaptureSample
 
         private void StartCapture(GraphicsCaptureItem item)
         {
+            StopCapture();
+            ResetUI(item);
+
             _capture = new SimpleCapture(_device, item);
-            BorderCheckBox.IsChecked = true;
-            CursorCheckBox.IsChecked = true;
 
             var surface = _capture.CreateSurface(_compositor);
             _brush.Surface = surface;
@@ -160,6 +172,20 @@ namespace UWPCaptureSample
         {
             _capture?.Dispose();
             _brush.Surface = null;
+        }
+
+        private void ResetUI(GraphicsCaptureItem item)
+        {
+            BorderCheckBox.IsChecked = true;
+            CursorCheckBox.IsChecked = true;
+            if (WindowsComboBox.SelectedItem != item)
+            {
+                WindowsComboBox.SelectedItem = null;
+            }
+            if (DisplaysComboBox.SelectedItem != item)
+            {
+                DisplaysComboBox.SelectedItem = null;
+            }
         }
 
         private async void OpenPickerButton_Click(object sender, RoutedEventArgs e)

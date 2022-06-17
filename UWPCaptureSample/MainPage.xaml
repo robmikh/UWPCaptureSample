@@ -23,11 +23,20 @@
 
         <Grid Grid.Column="0">
             <StackPanel Grid.Row="0" Margin="10">
-                <TextBlock Text="Windows:" Margin="5" />
-                <ComboBox x:Name="WindowsComboBox" ItemTemplate="{StaticResource GraphicsCaptureItemTemplate}" SelectionChanged="ProgrammaticComboBox_SelectionChanged" HorizontalAlignment="Stretch" Margin="5" />
-                <TextBlock Text="Displays:" Margin="5" />
-                <ComboBox x:Name="DisplaysComboBox" ItemTemplate="{StaticResource GraphicsCaptureItemTemplate}" SelectionChanged="ProgrammaticComboBox_SelectionChanged" HorizontalAlignment="Stretch" Margin="5" />
-                <Button x:Name="RefreshButton" Content="Refresh Lists" Click="RefreshButton_Click"  Margin="5" HorizontalAlignment="Stretch" />
+                <Grid>
+                    <StackPanel>
+                        <TextBlock Text="Windows:" Margin="5" />
+                        <ComboBox x:Name="WindowsComboBox" ItemTemplate="{StaticResource GraphicsCaptureItemTemplate}" SelectionChanged="ProgrammaticComboBox_SelectionChanged" HorizontalAlignment="Stretch" Margin="5" />
+                        <TextBlock Text="Displays:" Margin="5" />
+                        <ComboBox x:Name="DisplaysComboBox" ItemTemplate="{StaticResource GraphicsCaptureItemTemplate}" SelectionChanged="ProgrammaticComboBox_SelectionChanged" HorizontalAlignment="Stretch" Margin="5" />
+                        <Button x:Name="RefreshButton" Content="Refresh Lists" Click="RefreshButton_Click"  Margin="5" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                    <Grid x:Name="ProgrammaticLoadingGrid" Visibility="Collapsed">
+                        <Rectangle HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Fill="{ThemeResource ApplicationPageBackgroundThemeBrush}" Opacity="0.7" />
+                        <ProgressRing x:Name="ProgrammaticLoadingRing" IsActive="False" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Grid>
+                </Grid>
+                
                 <Button Content="Open Picker" Click="OpenPickerButton_Click" Margin="5" HorizontalAlignment="Stretch" />
                 <Button Content="Stop Capture" Click="StopCaptureButton_Click" Margin="5" HorizontalAlignment="Stretch" />
                 <CheckBox x:Name="CursorCheckBox" IsChecked="True" Content="Capture cursor" Checked="CursorCheckBox_Checked" Unchecked="CursorCheckBox_Unchecked" />
